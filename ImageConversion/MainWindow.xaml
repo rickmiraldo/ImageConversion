@@ -5,8 +5,85 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageConversion"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Title="Image Conversion" ResizeMode="CanMinimize" SizeToContent="WidthAndHeight">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Arquivo">
+                <MenuItem x:Name="btnSair" Header="_Sair" Click="btnSair_Click"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="A_juda">
+                <MenuItem x:Name="btnSobre" Header="_Sobre" Click="btnSobre_Click"></MenuItem>
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <TextBlock x:Name="txtStatusBar" Text="Pronto"></TextBlock>
+        </StatusBar>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Imagens de entrada (JPG/TIF):"></TextBlock>
+            <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Margin="0 5 0 10">
+                <TextBox x:Name="txtInputFolder" Width="230" Height="22"></TextBox>
+                <Button x:Name="btnChooseInputFolder" Content="Escolher..." Padding="5 0 5 0" Click="btnChooseInputFolder_Click"></Button>
+            </StackPanel>
+            <TextBlock Grid.Column="0" Grid.Row="2" Text="Imagens de saída:" Margin="0 0 0 0"></TextBlock>
+            <StackPanel Grid.Column="0" Grid.Row="3" Orientation="Horizontal" Margin="0 5 0 10">
+                <TextBox x:Name="txtOutputFolder" Width="230" Height="22"></TextBox>
+                <Button x:Name="btnChooseOutputFolder" Content="Escolher..." Padding="5 0 5 0" Click="btnChooseOutputFolder_Click"></Button>
+            </StackPanel>
+
+            <Grid Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"></ColumnDefinition>
+                    <ColumnDefinition Width="auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.Row="0" TextAlignment="Right" Text="Formato de saída:" Width="95" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10 0 0 0"></TextBlock>
+                <ComboBox x:Name="cmbSaveFormat" Grid.Column="1" Grid.Row="0" Width="80" Margin="10 0 0 0" HorizontalAlignment="Left">
+                    <ComboBoxItem Content="TIFF" IsSelected="True"></ComboBoxItem>
+                    <ComboBoxItem Content="TIFF LZW"></ComboBoxItem>
+                    <ComboBoxItem Content="JPG 90%"></ComboBoxItem>
+                    <ComboBoxItem Content="JPG 100%"></ComboBoxItem>
+                </ComboBox>
+                <TextBlock Grid.Column="0" Grid.Row="1" TextAlignment="Right" Text="Rotacionar imagem final:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 5 0 0"></TextBlock>
+                <ComboBox x:Name="cmbRotateImage" Grid.Column="1" Grid.Row="1" Width="80" Margin="10 5 0 0" HorizontalAlignment="Left">
+                    <ComboBoxItem Content="Não"></ComboBoxItem>
+                    <ComboBoxItem Content="90° CCW"></ComboBoxItem>
+                    <ComboBoxItem Content="90° CW" IsSelected="True"></ComboBoxItem>
+                    <ComboBoxItem Content="180°"></ComboBoxItem>
+                </ComboBox>
+                <TextBlock Grid.Column="0" Grid.Row="2" TextAlignment="Right" Text="Cortar imagem:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 5 0 0"></TextBlock>
+                <ComboBox x:Name="cmbCropImage" Grid.Column="1" Grid.Row="2" Width="80" Margin="10 5 0 0" HorizontalAlignment="Left" DropDownClosed="cmbCropImage_DropDownClosed">
+                    <ComboBoxItem Content="Não" IsSelected="True"></ComboBoxItem>
+                    <ComboBoxItem Content="Sim"></ComboBoxItem>
+                </ComboBox>
+                <TextBlock Grid.Column="0" Grid.Row="3" TextAlignment="Right" Text="Tamanho da imagem (LxC):" Margin="0 5 0 0" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
+                <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0 5 0 0">
+                    <TextBox x:Name="txtCropHeight" Width="60" Height="22" Margin="10 0 0 0" IsEnabled="False" PreviewTextInput="validateIfPositiveInteger"></TextBox>
+                    <TextBlock TextAlignment="Center" Text="x" Margin="5 0 5 0"></TextBlock>
+                    <TextBox x:Name="txtCropWidth" Width="60" Height="22" IsEnabled="False" PreviewTextInput="validateIfPositiveInteger"></TextBox>
+                </StackPanel>
+            </Grid>
+
+            <Button x:Name="btnStart" Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="INICIAR" Margin="0 15 0 10" Width="80" Height="35" FontWeight="Bold" FontSize="15" Click="btnStart_Click"></Button>
+
+            <ProgressBar x:Name="pgrProgressBar" Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" Height="22" Value="0"></ProgressBar>
+            <TextBlock x:Name="txtPercentageComplete" Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" Text="0%" HorizontalAlignment="Center" FontSize="11" FontStyle="Italic" Margin="0 2 0 0"></TextBlock>
+        </Grid>
+    </DockPanel>
 </Window>
