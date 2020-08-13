@@ -20,20 +20,40 @@ namespace ImageConversion
             string outputFilePath = outputFolderPath + "\\" + filename;
 
             // Abre imagem
+            Logger.Log("Abrindo imagem na memória...");
             Bitmap inputBitmap = new Bitmap(inputFile);
+            Logger.Log("Imagem aberta!");
 
             // Rodar imagem (se necessário)
+            Logger.Log("Rotacionando imagem... Configuração: " + processingConfiguration.RotateFinalImage);
             rotateImage(inputBitmap, processingConfiguration.RotateFinalImage);
+            Logger.Log("Imagem rotacionada! (foi ignorado se configurado para não rodar)");
 
             // Cortar imagem (se necessário)
             if (processingConfiguration.ShouldCropImage)
             {
+                Logger.Log("Cortando imagem... Configuração (LxC): " + processingConfiguration.MaxCroppedHeight + "x" + processingConfiguration.MaxCroppedWidth);
                 inputBitmap = cropImage(inputBitmap, processingConfiguration.MaxCroppedWidth, processingConfiguration.MaxCroppedHeight);
+                Logger.Log("Imagem cortada!");
             }
 
             // Salvar imagem final
-            saveImage(outputFilePath, inputBitmap, processingConfiguration.SaveFormat);
+            try
+            {
+                Logger.Log("Salvando imagem final... Formato: " + processingConfiguration.SaveFormat);
+                saveImage(outputFilePath, inputBitmap, processingConfiguration.SaveFormat);
+                Logger.Log("Imagem final salva em: " + outputFilePath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Erro ao salvar imagem!");
+                Logger.Log(ex.Message);
+                throw;
+            }
+            
+            Logger.Log("Liberando imagem da memória...");
             inputBitmap.Dispose();
+            Logger.Log("Memória liberada!");
         }
 
         private static void saveImage(string outputFilePath, Bitmap image, SaveFormatEnum saveFormat)

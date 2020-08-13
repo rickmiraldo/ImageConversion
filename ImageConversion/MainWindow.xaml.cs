@@ -1,4 +1,5 @@
 ﻿using ImageConversion.Enums;
+using ImageConversion.Helpers;
 using ImageConversion.Models;
 using System;
 using System.Collections.Generic;
@@ -12,16 +13,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using MessageBox = System.Windows.Forms.MessageBox;
-using Path = System.IO.Path;
 using TextBox = System.Windows.Controls.TextBox;
 
 namespace ImageConversion
@@ -38,6 +32,9 @@ namespace ImageConversion
         {
             // Força o programa a usar ponto (.) como separador decimal no lugar de vírgula (,)
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
+            Logger.Log("--------------------------------------------------");
+            Logger.Log("Inicializando Image Conversion v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + "...");
 
             // Start-up
             InitializeComponent();
@@ -56,6 +53,8 @@ namespace ImageConversion
                 }
                 txtInputFolder.Text = dialog.SelectedPath;
                 checkInputDirectory(dialog.SelectedPath);
+
+                Logger.Log("Diretório de entrada escolhido: " + dialog.SelectedPath);
             }
         }
 
@@ -72,37 +71,55 @@ namespace ImageConversion
                 }
                 txtOutputFolder.Text = dialog.SelectedPath;
                 checkOutputDirectory(dialog.SelectedPath);
+
+                Logger.Log("Diretório de saída escolhido: " + dialog.SelectedPath);
             }
         }
 
         private bool checkInputDirectory(string path)
         {
             // Verificação checa se o diretório de entrada existe e chama outra função para contar e listar as imagens que existem
+            Logger.Log("Checando diretório de entrada: " + path);
+
             if (Directory.Exists(path))
             {
                 inputFiles.Clear();
                 inputFiles = enumerateImagesInDirectory(path);
                 txtStatusBar.Text = inputFiles.Count.ToString() + " arquivo(s) encontrado(s)";
+
+                Logger.Log("Diretório de entrada contém " + inputFiles.Count.ToString() + " arquivo(s)");
+
                 return true;
             }
             else
             {
                 showWarning("Diretório de entrada inválido!");
+
+                Logger.Log("Diretório de entrada inválido!");
+
                 return false;
             }
         }
 
         private bool checkOutputDirectory(string path)
         {
-            // Verificação apenas checa se o diretório de saíde existe e habilita os próximos controles
+            // Verificação apenas checa se o diretório de saída existe e habilita os próximos controles
+            Logger.Log("Checando diretório de saída: " + path);
+
             if (Directory.Exists(path))
             {
                 outputFolderPath = path;
+
+                Logger.Log("Diretório de saída válido");
+
                 return true;
             }
             else
             {
                 showWarning("Diretório de saída inválido!");
+
+                Logger.Log("Diretório de saída inválido!");
+
                 return false;
             }
         }
@@ -119,6 +136,9 @@ namespace ImageConversion
             files.AddRange(tifFiles);
             files.AddRange(jpgFiles);
             files.Sort();
+
+            Logger.Log("Encontrados " + tifFiles.Count.ToString() + " arquivos TIF e " + jpgFiles.Count.ToString() + " arquivos JPG");
+            Logger.Log("Total de arquivos encontrados: " + files.Count.ToString());
 
             return files;
         }
@@ -164,17 +184,23 @@ namespace ImageConversion
         private async void btnStart_Click(object sender, RoutedEventArgs e)
         {
             // Verificações de todos os campos antes de iniciar o processamento
+            Logger.Log("Verificando campos de entrada...");
             if (!verifyAllInputs())
             {
+                Logger.Log("Erro nos campos de entrada!");
                 return;
             }
+            Logger.Log("Campos de entrada OK!");
 
             // Ler parâmetros de processamento
+            Logger.Log("Verificando parâmetros de processamento...");
             var processingConfiguration = readProcessingConfiguration();
             if (processingConfiguration == null)
             {
+                Logger.Log("Erro nos parâmetros de processamento!");
                 return;
             }
+            Logger.Log("Parâmetros de processamento OK!");
 
             // Bloquear inputs e limpar variávis
             blockInputs();
@@ -188,15 +214,21 @@ namespace ImageConversion
             sw.Restart();
 
             // Iniciar processamento
+            Logger.Log("INICIANDO PROCESSAMENTO DE " + totalFiles + " ARQUIVOS...");
             for (int i = 0; i < totalFiles; i++)
             {
+                Logger.Log("Processando arquivo " + (i + 1) + " de " + totalFiles + ": " + Path.GetFileName(inputFiles[i]) + "...");
+
                 txtStatusBar.Text = "Convertendo " + (i + 1) + " de " + totalFiles + " imagens...";
                 await Task.Run(() => ConvertImage.StartProcessing(inputFiles[i], outputFolderPath, processingConfiguration));
 
                 var percentageComplete = (100 * (i + 1)) / totalFiles;
                 pgrProgressBar.Value = percentageComplete;
                 txtPercentageComplete.Text = percentageComplete.ToString() + "%";
+
+                Logger.Log("Arquivo " + Path.GetFileName(inputFiles[i]) + " processado com sucesso!");
             }
+            Logger.Log("FIM DO PROCESSAMENTO!");
             // Fim do processamento
 
             // Parar timers
@@ -216,6 +248,7 @@ namespace ImageConversion
             // Função que lê as configurações de processamento
 
             // Ler formato para salvar imagem
+            Logger.Log("Lendo formato para salvar imagem...");
             SaveFormatEnum saveFormat;
             var saveFormatSelected = (ComboBoxItem)cmbSaveFormat.SelectedItem;
             switch (saveFormatSelected.Content)
@@ -235,8 +268,10 @@ namespace ImageConversion
                 default:
                     return null;
             }
+            Logger.Log("Formato selecionado: " + saveFormatSelected.Content);
 
             // Ler se a imagem será rotacionada
+            Logger.Log("Lendo se a imagem será rotacionada...");
             RotateFinalImageEnum rotateFinalImage;
             var rotateSelected = (ComboBoxItem)cmbRotateImage.SelectedItem;
             switch (rotateSelected.Content)
@@ -256,8 +291,10 @@ namespace ImageConversion
                 default:
                     return null;
             }
+            Logger.Log("Rotação selecionada: " + rotateSelected.Content);
 
             // Ler se a imagem deverá ser cortada
+            Logger.Log("Lendo se a imagem deverá ser cortada...");
             bool shouldCropImage;
             var shouldCrop = (ComboBoxItem)cmbCropImage.SelectedItem;
             switch (shouldCrop.Content)
@@ -271,10 +308,13 @@ namespace ImageConversion
                 default:
                     return null;
             }
+            Logger.Log("Cortar imagem: " + shouldCrop.Content);
 
             // Ler os valores de corte
+            Logger.Log("Lendo valores de corte...");
             int height = txtCropHeight.Text == "" ? 0 : int.Parse(txtCropHeight.Text);
             int width = txtCropWidth.Text == "" ? 0 : int.Parse(txtCropWidth.Text);
+            Logger.Log("Corte da imagem (LxC): " + height + "x" + width);
 
             // Salvar os valores lidos no objeto de configuração que será usado durante o processamento
             var processingConfiguration = new ProcessingConfiguration(saveFormat, rotateFinalImage, shouldCropImage, height, width);
@@ -285,25 +325,34 @@ namespace ImageConversion
         private bool verifyAllInputs()
         {
             // Verificar diretórios
+            Logger.Log("Verificando diretórios...");
             if (!checkInputDirectory(txtInputFolder.Text) || !checkOutputDirectory(txtOutputFolder.Text))
             {
+                Logger.Log("Erro ao verificar diretórios!");
                 return false;
             }
+            Logger.Log("Diretórios OK!");
 
             // Verificar se há arquivos para processar
+            Logger.Log("Verificando se há arquivos para processar...");
             if (!inputFiles.Any())
             {
+                Logger.Log("Não há arquivos para processar!");
                 showWarning("Não há arquivos para processar na pasta selecionada!");
                 return false;
             }
+            Logger.Log("Arquivos OK!");
 
             // Verificar se valores de corte da imagem são válidos
+            Logger.Log("Verificando se valores de corte da imagem são válidos...");
             var shouldCrop = (ComboBoxItem)cmbCropImage.SelectedItem;
             if (((string)shouldCrop.Content == "Sim") && ((txtCropHeight.Text == "") || (txtCropWidth.Text == "")))
             {
+                Logger.Log("Valores de corte inválidos!");
                 showWarning("Tamanho de corte da imagem inválido!");
                 return false;
             }
+            Logger.Log("Valores de corte OK!");
 
             return true;
         }
@@ -369,6 +418,7 @@ namespace ImageConversion
 
         private void btnSair_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log("Saindo sem grandes problemas...");
             Close();
         }
 
