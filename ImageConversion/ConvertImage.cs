@@ -49,7 +49,6 @@ namespace ImageConversion
                 Logger.Log("Erro ao salvar a imagem: " + filename);
                 Logger.SaveError(filename);
                 Logger.Log(ex.Message);
-                throw;
             }
             
             Logger.Log("Liberando imagem da memória...");
