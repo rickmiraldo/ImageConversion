@@ -46,7 +46,8 @@ namespace ImageConversion
             }
             catch (Exception ex)
             {
-                Logger.Log("Erro ao salvar imagem!");
+                Logger.Log("Erro ao salvar a imagem: " + filename);
+                Logger.SaveError(filename);
                 Logger.Log(ex.Message);
                 throw;
             }

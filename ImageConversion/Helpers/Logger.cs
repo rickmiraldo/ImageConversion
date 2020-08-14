@@ -15,5 +15,16 @@ namespace ImageConversion.Helpers
                 writer.WriteLine(dateNow + message);
             }
         }
+
+        public static void SaveError(string message)
+        {
+            using (StreamWriter writer = File.AppendText("save_error.txt"))
+            {
+                DateTime dt = new DateTime();
+                dt = DateTime.Now;
+                string dateNow = "[" + dt.ToString("yyyy-MM-dd HH:mm:ss.ffff") + "] ";
+                writer.WriteLine(dateNow + message);
+            }
+        }
     }
 }
